@@ -3,14 +3,14 @@ const app = express();
 require("dotenv").config();
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const morgan = require("morgan");
 const port = process.env.PORT || 8000;
 
 // middleware
 const corsOptions = {
-  origin: ["http://localhost:5173", "http://localhost:5174"],
+  origin: ["http://localhost:5173", "https://abstract-help.web.app"],
   credentials: true,
   optionSuccessStatus: 200,
 };
@@ -20,7 +20,6 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 const verifyToken = async (req, res, next) => {
   const token = req.cookies?.token;
-  console.log(token);
   if (!token) {
     return res.status(401).send({ message: "unauthorized access" });
   }
@@ -45,10 +44,10 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const cardsCollection = client.db("cardCenter").collection("cards");
+    const requestCollection = client.db("cardCenter").collection("requests");
     // auth related api
     app.post("/jwt", async (req, res) => {
       const user = req.body;
-      console.log("I need a new jwt", user);
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: "365d",
       });
@@ -94,7 +93,7 @@ async function run() {
 
       try {
         const result = await cardsCollection.insertOne(card);
-        res.status(201).json(result.ops[0]); // Return the created card
+        res.status(201).json(result); // Return the created card
       } catch (error) {
         res.status(500).json({ error: "Could not create the card" });
       }
@@ -139,10 +138,110 @@ async function run() {
         res.status(500).json({ error: "Could not fetch the card" });
       }
     });
+    //4. DELETE api /cards/:id
+    app.delete("/cards/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const query = { _id: new ObjectId(id) }; // Use ObjectId to match the ID format in MongoDB
 
-    // 4. Error Handling for Non-Existent Routes
+        const result = await cardsCollection.deleteOne(query);
+
+        if (result.deletedCount === 0) {
+          return res.status(404).json({ message: "Card not found" });
+        }
+
+        res.status(200).json({ message: "Card deleted successfully" });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+      }
+    });
+    // 5.GET request handler
+    app.get("/requests", async (req, res) => {
+      const { email } = req.query;
+
+      // Define the query object
+      const query = {};
+
+      // If an email is provided, add it to the query
+      if (email) {
+        query.email = email;
+      }
+
+      try {
+        // Fetch requests from the database, optionally filtered by email
+        const requests = await requestCollection.find(query).toArray();
+        res.json(requests);
+      } catch (error) {
+        res.status(500).json({ message: error.message });
+      }
+    });
+
+    // 6.POST request handler
+    app.post("/requests", async (req, res) => {
+      const { requestType, description, email } = req.body;
+
+      if (!requestType || !description) {
+        return res
+          .status(400)
+          .json({ message: "Request Type and Description are required" });
+      }
+
+      try {
+        const newRequest = {
+          requestType,
+          description,
+          email,
+          status: "pending",
+          updatedAt: new Date(),
+          createdAt: new Date(),
+          createdAt: new Date(),
+        };
+
+        const result = await requestCollection.insertOne(newRequest);
+
+        // Return the newly created request along with its ID
+        res.status(201).json({
+          success: true,
+          request: {
+            _id: result.insertedId,
+            ...newRequest,
+          },
+        });
+      } catch (error) {
+        res.status(500).json({ message: error.message });
+      }
+    });
+    // solving request and updating 
+    app.patch("/requests/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { status, updatedAt } = req.body;
+        
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).json({ message: "Invalid ID" });
+        }
+
+        const query = { _id: new ObjectId(id) };
+        const update = {
+          $set: { status, updatedAt },
+        };
+        const result = await requestCollection.updateOne(query, update);
+        console.log(result);
+        if (result.matchedCount === 0) {
+          return res.status(404).json({ message: "Request not found" });
+        }
+
+        const updatedRequest = await cardsCollection.findOne(query);
+        res.status(200).json(updatedRequest);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+      }
+    });
+    // Error Handling for Non-Existent Routes
     app.use((req, res) => {
-      res.status(404).json({ error: "Route not found" });
+      res.status(404).json({ api: "No Route found in this URL." });
     });
 
     // Send a ping to confirm a successful connection

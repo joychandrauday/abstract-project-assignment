@@ -7,6 +7,10 @@ import SignUp from "../pages/SignUp/SignUp";
 import CloseRoute from "../pages/ClosedRoute/CloseRoute";
 import PrivateRoute from "./PrivateRoute";
 import CardDetails from "../pages/CardDetails/CardDetails";
+import MyRequests from "../pages/MyRequests/MyRequests";
+import AddCard from "../pages/AddCard/AddCard";
+import Allrequest from "../pages/AllRequests/Allrequest";
+import AllCards from "../pages/AllCards/AllCards";
 
 export const router = createBrowserRouter([
   {
@@ -23,6 +27,38 @@ export const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <CloseRoute />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/requests",
+        element: (
+          <PrivateRoute>
+            <MyRequests />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/addcard",
+        element: (
+          <PrivateRoute>
+            <AddCard />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/all-requests",
+        element: (
+          <PrivateRoute>
+            <Allrequest />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/all-cards",
+        element: (
+          <PrivateRoute>
+            <AllCards />
           </PrivateRoute>
         ),
       },
