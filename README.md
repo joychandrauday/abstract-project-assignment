@@ -63,9 +63,73 @@ The Help Center API is a RESTful API built with Node.js and Express.js. It allow
       npm run dev
    ```
 
+## API Endpoints
+
+### Get All Cards
+
+- **Endpoint:** `GET /cards`
+- **Description:** Retrieves a list of all cards.
+- **Response:**
+  ```json
+  [
+    {
+      "id": "12345",
+      "title": "Branches",
+      "description": "Abstract Branches lets you manage, version, and document your designs in one place."
+    }
+  ]
+  ```
+
+### Get a Specific Card
+
+- **Endpoint:** `GET /cards/:title`
+- **Description:** Retrieves the details of a specific card by its title.
+- **Response:**
+  ```json
+  {
+    "id": "12345",
+    "title": "Branches",
+    "description": "Abstract Branches lets you manage, version, and document your designs in one place."
+  }
+  ```
+
+### Delete a Specific Card
+
+- **Endpoint:** `DELETE /cards/:id`
+- **Description:** Removes a specific card by its ID.
+- **Response:**
+  ```json
+  {
+    "message": "Card successfully deleted"
+  }
+  ```
+
+### Get all Requests
+
+- **Endpoint:** `GET /requests  retribes all requests.
+- **Response:**
+  ```json
+  {
+    "id": "request123",
+    "title": "Request Title",
+    "description": "Details of the specific request.",
+    "status": "pending",
+    "createdAt": "2024-08-19T12:34:56Z"
+  }
+  ```
+### Update a Request
+
+- **Endpoint:** `PATCH /requests/:id`
+- **Description:** Updates the details of a specific request by its ID.
+- **Request Body:**
+  ```json
+  {
+    "title": "Updated Request Title",
+    "description": "Updated details of the specific request.",
+    "status": "approved"
+  }
 
 ## Contact
 
 For questions or enquiries, please contact [joychandraud@gmail.com](mailto:joychandraud@gmail.com).
 For more [joychandrauday.web.app](https://joychandrauday.web.app/).
-
